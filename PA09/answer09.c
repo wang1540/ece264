@@ -25,7 +25,8 @@ Stack * Stack_create()
   Stack * stack = malloc(sizeof(Stack));
   stack -> head = NULL;
   return stack;  //Ask what is the structure of Stack.  
-  //the head is alway NULL.    T/F
+  //the head is alway NULL.    F.  
+  //this step is just seperate the link list to to part, one is head, one is tail.
 }
 
 void Stack_destroy(Stack * stack)
@@ -43,7 +44,7 @@ void Stack_destroy(Stack * stack)
 
 int Stack_isEmpty(Stack * stack)
 {
-  return (stack -> head == NULL);// why do not use stack here?
+  return ((stack -> head == NULL) | (stack == NULL));
 }
 
 
@@ -109,8 +110,6 @@ HuffNode * HuffTree_readTextHeader(FILE * fp)
   return tree;
 }
 
-
-
 typedef struct bfile {
   FILE * fp;
   unsigned char byte;
@@ -140,10 +139,42 @@ int BitFile_nextBit (BitFile * bitfile)
       return -1;
     }
   }
-  return (bitfile -> byte | (1 << pos++));
+  int val = (bitfile -> byte >> (7 - bitfile -> pos)) | 1;
+  bitfile -> pos ++;
+  return val;
+}
+
+int BitFile_nextByte (BitFile * bf)
+{
+int ret = 0;
+int pos;
+for (pos = 0; pos  < 8; pos++)     {
+int bit = BitFile_nextBit(bf);
+if (bit < 0)   return -1;
+ret = ret | (bit << (8 - pos));
+}
+return ret;
 }
 
 HuffNode * HuffTree_readBinaryHeader(FILE * fp)
 {
+Stack * stack = Stack_create();
+BitFile * bf = BitFile_create(fp);
+int val = BitFile_nextBit(bf);
+while (val >= 0)    {
+if (val =1)      {
+val = BitFile_nextByte(bf);
+stack_pushFront(stack,HuffNode_create(val));
+}
+else if (val == 0)    {
+if (Stack_size(stack) == 1)      break;
+HuffNode * tree = Stack_popFront (stack);
+}
+val = BitFile_nextBit(bf);
+}
 
+HuffNode * tree = Stack_popFront (stack);
+Stack_destroy (stack);
+BitFile_destroy (bf);
+return tree;
 }
