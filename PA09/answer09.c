@@ -144,14 +144,14 @@ int BitFile_nextBit (BitFile * bitfile)
   return val;
 }
 
-int BitFile_nextByte (BitFile * bf)
+int BitFile_nextByte (BitFile * bitfile)
 {
 int ret = 0;
 int pos;
 for (pos = 0; pos  < 8; pos++)     {
-int bit = BitFile_nextBit(bf);
+int bit = BitFile_nextBit(bitfile);
 if (bit < 0)   return -1;
-ret = ret | (bit << (8 - pos));
+ret = ret | (bit << (7 - pos));
 }
 return ret;
 }
@@ -168,7 +168,7 @@ stack_pushFront(stack,HuffNode_create(val));
 }
 else if (val == 0)    {
 if (Stack_size(stack) == 1)      break;
-HuffNode * tree = Stack_popFront (stack);
+HuffNode * tree = Stack_popPopCombinePush (stack);
 }
 val = BitFile_nextBit(bf);
 }
