@@ -89,10 +89,10 @@ void sortStringArray (char * * arrString, int len)
 
 int charcompare(const void * a, const void * b)
 {
-  const char * x = (const char *) a;
-  const char * y = (const char *) b;
+  const char  x = * (const char *) a;
+  const char  y = * (const char *) b;
   
-  return *x - *y;
+  return (int)x - (int)y;
 }
 
 void sortStringCharacters(char * str)
