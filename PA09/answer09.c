@@ -24,32 +24,32 @@ Stack * Stack_create()
 {
   Stack * stack = malloc(sizeof(Stack));
   stack -> head = NULL;
-  return stack;  //Ask what is the structure of Stack.  
-  //the head is alway NULL.    T/F
+  return stack;  
+  //the head is alway NULL.    F
 }
 
 void Stack_destroy(Stack * stack)
 {
   if (stack == NULL)    return;
-
+  if (stack -> head == NULL)      return;
   StackNode * node = stack -> head;
   while (node != NULL)    {
     StackNode * temp = node;
     node = node -> next;
-    HuffNode_destroy (temp-> tree);
+    HuffNode_destroy (temp -> tree);
     free(temp);
   }
 }// why we use temp, rather than node? 
 
 int Stack_isEmpty(Stack * stack)
 {
-  return (stack -> head == NULL);// why do not use stack here?
+  return ((stack -> head == NULL) | (stack == NULL) );// why do not use stack here?
 }
 
 
 HuffNode * Stack_popFront(Stack * stack)
 {
-  if (Stack_isEmpty)      return NULL;
+  if (Stack_isEmpty (stack) )      return NULL;
   HuffNode * tree = stack -> head -> tree;
   StackNode * temp = stack -> head;
   stack -> head = temp -> next;
@@ -140,10 +140,42 @@ int BitFile_nextBit (BitFile * bitfile)
       return -1;
     }
   }
-  return (bitfile -> byte | (1 << pos++));
+  int val = (bitfile -> byte >> (7 - bitfile -> pos)) | 1;
+  bitfile -> pos ++;
+  return val;  
+}
+
+int BitFile_nextByte (BitFile * bitfile)
+{
+  int ret = 0;
+  int pos;
+  for (pos = 0; pos < 8; pos++) {
+    int bit = BitFile_nextBit(bitfile);
+    if (bit < 0) return -1;
+    ret = ret | (bit << (7 - pos));
+  }
+  return ret;
 }
 
 HuffNode * HuffTree_readBinaryHeader(FILE * fp)
 {
-
+  Stack * stack = Stack_create();
+  BitFile * bf = BitFile_create(fp);
+  int val = BitFile_nextBit(bf);
+  while (val >= 0) {
+    if (val == 1) {
+      val = BitFile_nextByte(bf);
+      Stack_pushFront(stack,HuffNode_create(val));
+    }
+    else if (val == 0) {
+      if (Stack_size(stack) == 1) break;
+      Stack_popPopCombinePush (stack);
+    }
+    val = BitFile_nextBit(bf);
+  }
+  
+  HuffNode * tree = Stack_popFront (stack);
+  Stack_destroy (stack);
+  BitFile_destroy (bf);
+  return tree;
 }
